@@ -1,0 +1,434 @@
+#bv-vowel-extension-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  width: min(1040px, 96vw);
+  margin: 0 auto;
+}
+
+#bv-training-stats {
+  display: grid;
+  grid-template-columns: minmax(132px, 1.2fr) repeat(6, minmax(78px, 1fr));
+  flex: 0 0 100%;
+  width: 100%;
+  min-height: 66px;
+  overflow: hidden;
+  border: 1px solid rgba(164, 205, 215, 0.18);
+  border-radius: 8px;
+  background: #121821;
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  font-family: Satoshi, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#bv-training-stats .bv-stats-heading,
+#bv-training-stats .bv-stat {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 13px;
+}
+
+#bv-training-stats .bv-stats-heading {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#bv-training-stats .bv-stat {
+  border-left: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+#bv-training-stats .bv-stat span {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#bv-training-stats .bv-stat strong {
+  margin-top: 5px;
+  overflow: hidden;
+  color: #f7fbff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#bv-vowel-extension-row .bv-vfr-chart-column {
+  width: min(640px, 92vw);
+  flex: 0 1 640px;
+}
+
+#bv-vowel-extension-row #stage {
+  width: 100%;
+}
+
+#bv-vowel-focus-reader {
+  width: 100%;
+  margin: 14px auto 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(120deg, rgba(245, 39, 127, 0.16), rgba(85, 230, 193, 0.09)),
+    #15171f;
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
+  font-family: Satoshi, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#bv-vowel-focus-reader .bv-vfr-label,
+#bv-ih-flight-game .bv-game-kicker,
+#bv-ih-flight-game .bv-game-label,
+#bv-ih-flight-game .bv-game-footer span {
+  color: rgba(255, 255, 255, 0.57);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+#bv-vowel-focus-reader .bv-vfr-label {
+  margin-bottom: 4px;
+}
+
+#bv-vowel-focus-reader .bv-vfr-value {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+#bv-vowel-focus-reader .bv-vfr-detail {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+#bv-vowel-focus-reader[data-state="active"] {
+  border-color: rgba(245, 39, 127, 0.62);
+  box-shadow:
+    0 0 0 1px rgba(245, 39, 127, 0.18),
+    0 18px 42px rgba(245, 39, 127, 0.18),
+    0 14px 34px rgba(0, 0, 0, 0.25);
+}
+
+#bv-vowel-focus-reader[data-state="error"] {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+#bv-ih-flight-game {
+  box-sizing: border-box;
+  flex: 0 0 360px;
+  width: 360px;
+  padding: 14px;
+  border: 1px solid rgba(164, 205, 215, 0.2);
+  border-radius: 8px;
+  background: #121821;
+  color: #fff;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  font-family: Satoshi, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#bv-ih-flight-game *,
+#bv-ih-flight-game *::before,
+#bv-ih-flight-game *::after {
+  box-sizing: border-box;
+}
+
+#bv-ih-flight-game [hidden] {
+  display: none !important;
+}
+
+#bv-ih-flight-game .bv-game-header,
+#bv-ih-flight-game .bv-game-footer,
+#bv-ih-flight-game .bv-game-word-config {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#bv-ih-flight-game .bv-game-title {
+  margin-top: 3px;
+  color: #f7fbff;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+#bv-ih-flight-game .bv-game-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.055);
+  color: #fff;
+  font: 800 18px/1 Satoshi, system-ui;
+  cursor: pointer;
+}
+
+#bv-ih-flight-game .bv-game-reset:hover {
+  border-color: rgba(85, 230, 193, 0.52);
+  background: rgba(85, 230, 193, 0.1);
+}
+
+#bv-ih-flight-game .bv-game-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  height: 38px;
+  margin-top: 14px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
+  background: #0d131b;
+}
+
+#bv-ih-flight-game .bv-game-modes button {
+  min-width: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.52);
+  font: 800 13px/1 Satoshi, system-ui;
+  cursor: pointer;
+}
+
+#bv-ih-flight-game .bv-game-modes button[data-selected="true"] {
+  background: #263645;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(85, 230, 193, 0.22);
+}
+
+#bv-ih-flight-game .bv-game-config {
+  min-height: 80px;
+  padding: 12px 2px 8px;
+}
+
+#bv-ih-flight-game .bv-game-targets {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 7px;
+}
+
+#bv-ih-flight-game .bv-game-target {
+  min-width: 0;
+  height: 27px;
+  padding: 0 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.76);
+  font: 900 13px/1 Satoshi, system-ui;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+#bv-ih-flight-game .bv-game-target[data-selected="true"] {
+  border-color: rgba(245, 39, 127, 0.48);
+  background: rgba(245, 39, 127, 0.14);
+  color: #fff;
+}
+
+#bv-ih-flight-game .bv-game-target[data-active="true"] {
+  border-color: #55e6c1;
+  background: rgba(85, 230, 193, 0.16);
+  color: #a7ffea;
+  box-shadow: 0 0 14px rgba(85, 230, 193, 0.23);
+}
+
+#bv-ih-flight-game .bv-game-word-config {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#bv-ih-flight-game .bv-word-level {
+  color: #fff;
+  font-size: 16px;
+}
+
+#bv-ih-flight-game .bv-word-sound {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 28px;
+  border: 1px solid rgba(248, 200, 92, 0.55);
+  border-radius: 6px;
+  background: rgba(248, 200, 92, 0.12);
+  color: #f8c85c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+#bv-ih-flight-game .bv-drill-config-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+#bv-ih-flight-game .bv-game-drill-config select {
+  min-width: 0;
+  width: 100%;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  background: #1b2634;
+  color: #fff;
+  font: 800 12px/1 Satoshi, system-ui;
+  cursor: pointer;
+}
+
+#bv-ih-flight-game .bv-drill-sound {
+  display: inline-flex;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border: 1px solid rgba(248, 200, 92, 0.55);
+  border-radius: 6px;
+  background: rgba(248, 200, 92, 0.12);
+  color: #f8c85c;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+#bv-ih-flight-game .bv-drill-position {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+#bv-ih-flight-game .bv-drill-position strong {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 900;
+}
+
+#bv-ih-flight-game .bv-game-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 18 / 25;
+  border: 1px solid rgba(165, 208, 219, 0.12);
+  border-radius: 8px;
+  background: #101729;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+#bv-ih-flight-game .bv-game-progress {
+  height: 5px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#bv-ih-flight-game .bv-game-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #55e6c1, #f8c85c);
+  box-shadow: 0 0 14px rgba(85, 230, 193, 0.42);
+  transition: width 180ms ease-out;
+}
+
+#bv-ih-flight-game[data-mode="sounds"] .bv-game-progress {
+  visibility: hidden;
+}
+
+#bv-ih-flight-game .bv-game-footer {
+  min-height: 33px;
+  padding-top: 8px;
+}
+
+#bv-ih-flight-game .bv-game-footer strong {
+  color: #fff;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+#bv-ih-flight-game[data-active="true"] {
+  border-color: rgba(85, 230, 193, 0.52);
+  box-shadow:
+    0 0 0 1px rgba(85, 230, 193, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.34);
+}
+
+@media (max-width: 1040px) {
+  #bv-vowel-extension-row {
+    flex-direction: column;
+    align-items: center;
+    width: min(640px, 92vw);
+  }
+
+  #bv-vowel-extension-row .bv-vfr-chart-column,
+  #bv-ih-flight-game {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  #bv-ih-flight-game {
+    max-width: 420px;
+  }
+
+  #bv-training-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #bv-training-stats .bv-stats-heading {
+    grid-column: 1 / -1;
+    min-height: 38px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  }
+
+  #bv-training-stats .bv-stat:nth-of-type(3n + 2) {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  #bv-training-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #bv-training-stats .bv-stat:nth-of-type(3n + 2) {
+    border-left: 1px solid rgba(255, 255, 255, 0.075);
+  }
+
+  #bv-training-stats .bv-stat:nth-of-type(2n + 2) {
+    border-left: 0;
+  }
+}
