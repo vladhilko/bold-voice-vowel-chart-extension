@@ -11,6 +11,75 @@ test('uses a longer recovery window after a successful attempt', () => {
   assert.ok(core.SUCCESS_REARM_MS > core.BURST_GAP_MS);
 });
 
+test('projects the live vowel dot relative to the current target anchor', () => {
+  const anchor = { openness: 0.25, forwardness: 0.75 };
+  const canvas = { canvasWidth: 500, canvasHeight: 400 };
+  const targetX = 50 + (1 - anchor.forwardness) * 400;
+  const targetY = 50 + anchor.openness * 300;
+  assert.deepEqual(core.projectLiveVowel({ ...canvas, x: targetX, y: targetY }, anchor), { x: 0, y: 0 });
+  assert.deepEqual(core.projectLiveVowel({ ...canvas, x: targetX + 100, y: targetY - 75 }, anchor), { x: 0.25, y: -0.25 });
+});
+
+test('live vowel projection rejects invalid geometry and stays inside the mini map', () => {
+  const anchor = { openness: 0.5, forwardness: 0.5 };
+  assert.equal(core.projectLiveVowel(null, anchor), null);
+  assert.equal(core.projectLiveVowel({ x: 1, y: 1, canvasWidth: 80, canvasHeight: 80 }, anchor), null);
+  assert.deepEqual(core.projectLiveVowel({ x: 9999, y: -9999, canvasWidth: 500, canvasHeight: 400 }, anchor), { x: 1, y: -1 });
+});
+
+test('normalizes anchor and live coordinates with the main map orientation', () => {
+  assert.deepEqual(core.normalizedAnchorPoint({ openness: 0.0077, forwardness: 0.9975 }), { x: 0.0024999999999999467, y: 0.0077 });
+  assert.deepEqual(core.normalizedAnchorPoint({ openness: 0.9966, forwardness: 0.002 }), { x: 0.998, y: 0.9966 });
+  assert.deepEqual(core.normalizedLivePoint({ x: 150, y: 125, canvasWidth: 500, canvasHeight: 400 }), {
+    x: 0.25,
+    y: 0.25,
+    chartWidth: 400,
+    chartHeight: 300,
+  });
+  assert.equal(core.liveDisplayScale({ canvasWidth: 640, canvasHeight: 640, canvasDisplayWidth: 618, canvasDisplayHeight: 618 }), 618 / 640);
+});
+
+test('bounded mini-map centers interior targets and clamps edge targets', () => {
+  const viewport = { width: 300, height: 80 };
+  const source = { width: 400, height: 300 };
+  const interior = core.miniMapCamera({ x: 0.5, y: 0.5 }, viewport, source, 1.25);
+  const interiorPoint = core.projectMiniMapPoint({ x: 0.5, y: 0.5 }, interior);
+  assert.ok(Math.abs(interiorPoint.x - 150) < 0.0001);
+  assert.ok(Math.abs(interiorPoint.y - 40) < 0.0001);
+
+  const topLeft = core.miniMapCamera({ x: 0, y: 0 }, viewport, source, 1.25);
+  const topLeftPoint = core.projectMiniMapPoint({ x: 0, y: 0 }, topLeft);
+  assert.deepEqual(topLeftPoint, { x: 0, y: 0 });
+
+  const bottomRight = core.miniMapCamera({ x: 1, y: 1 }, viewport, source, 1.25);
+  const bottomRightPoint = core.projectMiniMapPoint({ x: 1, y: 1 }, bottomRight);
+  assert.deepEqual(bottomRightPoint, { x: 300, y: 80 });
+});
+
+test('mini-map projection keeps horizontal and vertical movement uniform', () => {
+  const camera = core.miniMapCamera({ x: 0.5, y: 0.5 }, { width: 300, height: 80 }, { width: 400, height: 300 }, 1.25);
+  const center = core.projectMiniMapPoint({ x: 0.5, y: 0.5 }, camera);
+  const moved = core.projectMiniMapPoint({ x: 0.6, y: 0.6 }, camera);
+  assert.ok(Math.abs((moved.x - center.x) / 400 - (moved.y - center.y) / 300) < 0.0001);
+});
+
+test('detects every mini-map exit direction and clamps the visible point', () => {
+  const viewport = { width: 300, height: 80 };
+  assert.deepEqual(core.miniMapEdgeFlags({ x: -1, y: 40 }, viewport), { left: true, right: false, top: false, bottom: false, outside: true });
+  assert.deepEqual(core.miniMapEdgeFlags({ x: 301, y: 40 }, viewport), { left: false, right: true, top: false, bottom: false, outside: true });
+  assert.deepEqual(core.miniMapEdgeFlags({ x: 150, y: -1 }, viewport), { left: false, right: false, top: true, bottom: false, outside: true });
+  assert.deepEqual(core.miniMapEdgeFlags({ x: 150, y: 81 }, viewport), { left: false, right: false, top: false, bottom: true, outside: true });
+  assert.deepEqual(core.miniMapEdgeFlags({ x: -1, y: 81 }, viewport), { left: true, right: false, top: false, bottom: true, outside: true });
+  assert.deepEqual(core.clampMiniMapPoint({ x: -40, y: 100 }, viewport, 12), { x: 12, y: 68 });
+});
+
+test('chooses one dominant edge when a live point exits through a corner', () => {
+  const viewport = { width: 300, height: 80 };
+  assert.equal(core.miniMapPrimaryEdge({ x: -40, y: -2 }, viewport), 'left');
+  assert.equal(core.miniMapPrimaryEdge({ x: 301, y: 100 }, viewport), 'bottom');
+  assert.equal(core.miniMapPrimaryEdge({ x: 150, y: 40 }, viewport), '');
+});
+
 test('a burst is correct after sustained target focus despite a brief wrong onset', () => {
   const burst = core.createBurst('AH');
   core.addBurstSample(burst, 'IH', 'IH', 0);

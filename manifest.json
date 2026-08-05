@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BoldVoice Vowel Focus Reader",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Adds exhaustive guided vowel training, progress analysis, and pronunciation games to the BoldVoice vowel map.",
   "permissions": [
     "storage"

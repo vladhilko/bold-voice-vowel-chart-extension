@@ -45,6 +45,18 @@
   let celebrationTimer = 0;
   let correctCueTimer = 0;
   let audioContext = null;
+  let liveVowelTrail = [];
+  let liveVowelItemId = '';
+  let liveVowelSampleAt = 0;
+  let cardMapAnchors = [];
+  let cardMapSourceSize = { width: 540, height: 540, scale: 1 };
+  let cardMapEdgeKey = '';
+  let cardMapFocusState = false;
+  let cardMapEdgePulseTimer = 0;
+  let cardMapFocusPulseTimer = 0;
+
+  const LIVE_TRAIL_POINTS = 7;
+  const MINI_MAP_ZOOM = 1;
 
   function globalItemId(soundId, localId) {
     return `${soundId}:${localId}`;
@@ -579,6 +591,14 @@
       '  <div class="bv-targeted-banner" hidden><span>Targeted practice</span><button type="button">Return</button></div>',
       '  <div class="bv-prompt-card">',
       '    <div class="bv-prompt-meta"><span data-prompt="stage"></span><span data-prompt="position"></span></div>',
+      '    <div class="bv-card-vowel-map" data-live="false" data-focused="false" aria-hidden="true">',
+      '      <div class="bv-card-vowel-viewport">',
+      '        <div class="bv-card-vowel-anchors"></div>',
+      `        <span class="bv-card-vowel-trail">${'<i></i>'.repeat(LIVE_TRAIL_POINTS)}</span>`,
+      '        <span class="bv-card-vowel-target"></span>',
+      '        <span class="bv-card-vowel-dot"></span>',
+      '      </div>',
+      '    </div>',
       '    <strong class="bv-prompt-value" data-prompt="value">UH</strong>',
       '    <div class="bv-prompt-ipa" data-prompt="ipa">/ʌ/</div>',
       '    <div class="bv-prompt-detail" data-prompt="detail">Pure sound</div>',
@@ -796,6 +816,7 @@
     shell.querySelector('.bv-guide-skip').hidden = isMastery || !skipReady || advancing || trainingPaused;
     shell.querySelector('.bv-prompt-card').dataset.active = active ? 'true' : 'false';
     shell.querySelector('.bv-prompt-card').dataset.stage = item.stageId;
+    renderCardVowelMap(item, sound);
     shell.dataset.paused = trainingPaused ? 'true' : 'false';
     renderStrikeState();
     const banner = shell.querySelector('.bv-targeted-banner');
@@ -821,6 +842,147 @@
       if (!feedback.dataset.trend) setFeedback(`${sound.label} sound officially mastered`, 'correct');
     }
     renderStageTrack();
+  }
+
+  function renderCardVowelMap(item, sound) {
+    const map = shell.querySelector('.bv-card-vowel-map');
+    if (!map) return;
+    const payload = currentPayload;
+    const targetArpa = String(sound && sound.arpa || '').toUpperCase();
+    const viewport = map.querySelector('.bv-card-vowel-viewport');
+    const anchorLayer = map.querySelector('.bv-card-vowel-anchors');
+    const targetMarker = map.querySelector('.bv-card-vowel-target');
+    const dot = map.querySelector('.bv-card-vowel-dot');
+    const trailElements = map.querySelectorAll('.bv-card-vowel-trail i');
+    if (!viewport || !anchorLayer || !targetMarker || !dot) return;
+
+    if (Array.isArray(payload && payload.anchors) && payload.anchors.length) cardMapAnchors = payload.anchors;
+    const anchors = cardMapAnchors;
+    const targetAnchor = anchors.find((anchor) => String(anchor.arpa || '').toUpperCase() === targetArpa);
+    const targetPoint = core.normalizedAnchorPoint(targetAnchor) || { x: 0.5, y: 0.5 };
+    const livePoint = core.normalizedLivePoint(payload && payload.live);
+    if (livePoint) {
+      cardMapSourceSize = {
+        width: livePoint.chartWidth,
+        height: livePoint.chartHeight,
+        scale: core.liveDisplayScale(payload.live),
+      };
+    }
+
+    const viewportSize = { width: viewport.clientWidth, height: viewport.clientHeight };
+    if (!viewportSize.width || !viewportSize.height) return;
+    const camera = core.miniMapCamera(targetPoint, viewportSize, cardMapSourceSize, MINI_MAP_ZOOM);
+    if (!camera) return;
+
+    anchorLayer.replaceChildren();
+    for (const anchor of anchors) {
+      const normalized = core.normalizedAnchorPoint(anchor);
+      const projected = core.projectMiniMapPoint(normalized, camera);
+      if (!normalized || !projected) continue;
+      const anchorRadius = Math.max(16, Math.min(40, camera.scale * 36));
+      const outsideReach = anchorRadius + 1;
+      if (
+        projected.x < -outsideReach ||
+        projected.x > viewportSize.width + outsideReach ||
+        projected.y < -outsideReach ||
+        projected.y > viewportSize.height + outsideReach
+      ) continue;
+      const visiblePoint = core.clampMiniMapPoint(projected, viewportSize, outsideReach);
+      const marker = document.createElement('span');
+      const markerDot = document.createElement('i');
+      const arpa = String(anchor.arpa || '').toUpperCase();
+      marker.className = 'bv-card-vowel-anchor';
+      marker.dataset.target = String(arpa === targetArpa);
+      marker.style.left = `${visiblePoint.x.toFixed(1)}px`;
+      marker.style.top = `${visiblePoint.y.toFixed(1)}px`;
+      marker.style.width = `${anchorRadius * 2}px`;
+      marker.style.height = `${anchorRadius * 2}px`;
+      markerDot.setAttribute('aria-hidden', 'true');
+      marker.append(markerDot);
+      anchorLayer.appendChild(marker);
+    }
+
+    const projectedTarget = core.projectMiniMapPoint(targetPoint, camera);
+    const targetRadius = Math.max(18, Math.min(42, camera.scale * 36));
+    const targetScreenPoint = core.clampMiniMapPoint(projectedTarget || { x: 0, y: 0 }, viewportSize, targetRadius + 1);
+    targetMarker.style.left = `${targetScreenPoint.x.toFixed(1)}px`;
+    targetMarker.style.top = `${targetScreenPoint.y.toFixed(1)}px`;
+    targetMarker.style.width = `${targetRadius * 2}px`;
+    targetMarker.style.height = `${targetRadius * 2}px`;
+    map.dataset.target = targetArpa;
+
+    if (liveVowelItemId !== item.id) {
+      liveVowelTrail = [];
+      liveVowelItemId = item.id;
+      liveVowelSampleAt = 0;
+    }
+
+    const liveScreenPoint = livePoint ? core.projectMiniMapPoint(livePoint, camera) : null;
+    const focused = Boolean(payload && payload.focused && String(payload.arpa || '').toUpperCase() === targetArpa);
+    const sampleAt = Number(payload && payload.live && payload.live.at) || 0;
+    if (livePoint && sampleAt && sampleAt !== liveVowelSampleAt) {
+      liveVowelTrail.push({ x: livePoint.x, y: livePoint.y });
+      liveVowelTrail = liveVowelTrail.slice(-LIVE_TRAIL_POINTS);
+      liveVowelSampleAt = sampleAt;
+    }
+
+    if (liveScreenPoint) {
+      const dotDiameter = Math.max(20, Math.min(32, camera.scale * 28));
+      dot.style.width = `${dotDiameter.toFixed(1)}px`;
+      dot.style.height = `${dotDiameter.toFixed(1)}px`;
+      const visibleDot = core.clampMiniMapPoint(liveScreenPoint, viewportSize, dotDiameter / 2 + 2);
+      dot.style.left = `${visibleDot.x.toFixed(1)}px`;
+      dot.style.top = `${visibleDot.y.toFixed(1)}px`;
+    }
+    map.dataset.live = String(Boolean(liveScreenPoint));
+    map.dataset.focused = String(focused);
+    const primaryEdge = core.miniMapPrimaryEdge(liveScreenPoint, viewportSize);
+    setMiniMapEdges(viewport, primaryEdge);
+
+    const trail = liveVowelTrail.slice(0, -1);
+    trailElements.forEach((element, index) => {
+      const trailPoint = trail[index - (trailElements.length - trail.length)];
+      if (!trailPoint) {
+        element.style.opacity = '0';
+        return;
+      }
+      const projected = core.projectMiniMapPoint(trailPoint, camera);
+      const age = index - (trailElements.length - trail.length) + 1;
+      element.style.left = `${projected.x.toFixed(1)}px`;
+      element.style.top = `${projected.y.toFixed(1)}px`;
+      const trailDiameter = Math.max(8, Math.min(18, camera.scale * 12));
+      element.style.width = `${trailDiameter.toFixed(1)}px`;
+      element.style.height = `${trailDiameter.toFixed(1)}px`;
+      element.style.opacity = String((age / Math.max(1, trail.length)) * 0.32);
+    });
+
+    const nextEdgeKey = primaryEdge || '';
+    if (nextEdgeKey !== cardMapEdgeKey) {
+      cardMapEdgeKey = nextEdgeKey;
+      pulseMiniMapElement(viewport, 'bv-card-edge-pulse', 'edge');
+    }
+    if (focused !== cardMapFocusState) {
+      cardMapFocusState = focused;
+      pulseMiniMapElement(targetMarker, 'bv-card-target-pulse', 'focus');
+    }
+  }
+
+  function setMiniMapEdges(viewport, primaryEdge) {
+    for (const side of ['left', 'right', 'top', 'bottom']) {
+      viewport.dataset[`edge${side[0].toUpperCase()}${side.slice(1)}`] = String(primaryEdge === side);
+    }
+  }
+
+  function pulseMiniMapElement(element, className, type) {
+    if (!element) return;
+    const timer = type === 'edge' ? cardMapEdgePulseTimer : cardMapFocusPulseTimer;
+    if (timer) window.clearTimeout(timer);
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+    const nextTimer = window.setTimeout(() => element.classList.remove(className), 620);
+    if (type === 'edge') cardMapEdgePulseTimer = nextTimer;
+    else cardMapFocusPulseTimer = nextTimer;
   }
 
   function renderAll() {

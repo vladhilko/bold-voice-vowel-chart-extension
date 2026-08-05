@@ -238,10 +238,19 @@
     lastLiveAt = performance.now();
     loadAnchors().then(() => {
       const nearest = nearestAnchor(canvas, x, y);
+      const rect = canvas.getBoundingClientRect();
       lastLivePayload = {
         focused: false,
         anchors,
-        live: { x, y, canvasWidth: canvas.width, canvasHeight: canvas.height, at: performance.now() },
+        live: {
+          x,
+          y,
+          canvasWidth: canvas.width,
+          canvasHeight: canvas.height,
+          canvasDisplayWidth: rect.width,
+          canvasDisplayHeight: rect.height,
+          at: performance.now(),
+        },
         nearest: nearest && {
           symbol: nearest.label,
           arpa: nearest.arpa,

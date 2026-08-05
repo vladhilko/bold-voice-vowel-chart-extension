@@ -15,6 +15,7 @@
   const PROGRESS_HISTORY_LIMIT = 3650;
   const SKIP_MISSES = 10;
   const SKIP_TIME_MS = 60000;
+  const VOWEL_MAP_MARGIN = 50;
 
   function blankState() {
     return {
@@ -39,6 +40,145 @@
 
   function safeCount(value) {
     return Math.max(0, Math.floor(Number(value) || 0));
+  }
+
+  function normalizedAnchorPoint(anchor) {
+    if (!anchor) return null;
+    const openness = Number(anchor.openness);
+    const forwardness = Number(anchor.forwardness);
+    if (![openness, forwardness].every(Number.isFinite)) return null;
+    return { x: 1 - forwardness, y: openness };
+  }
+
+  function normalizedLivePoint(live, margin = VOWEL_MAP_MARGIN) {
+    if (!live) return null;
+    const canvasWidth = Number(live.canvasWidth);
+    const canvasHeight = Number(live.canvasHeight);
+    const x = Number(live.x);
+    const y = Number(live.y);
+    const safeMargin = Math.max(0, Number(margin) || 0);
+    const chartWidth = canvasWidth - 2 * safeMargin;
+    const chartHeight = canvasHeight - 2 * safeMargin;
+    if (![canvasWidth, canvasHeight, x, y].every(Number.isFinite) || chartWidth <= 0 || chartHeight <= 0) return null;
+    return {
+      x: (x - safeMargin) / chartWidth,
+      y: (y - safeMargin) / chartHeight,
+      chartWidth,
+      chartHeight,
+    };
+  }
+
+  function liveDisplayScale(live) {
+    if (!live) return 1;
+    const canvasWidth = Number(live.canvasWidth);
+    const canvasHeight = Number(live.canvasHeight);
+    const displayWidth = Number(live.canvasDisplayWidth);
+    const displayHeight = Number(live.canvasDisplayHeight);
+    const scaleX = displayWidth > 0 && canvasWidth > 0 ? displayWidth / canvasWidth : 1;
+    const scaleY = displayHeight > 0 && canvasHeight > 0 ? displayHeight / canvasHeight : 1;
+    return Math.min(scaleX, scaleY);
+  }
+
+  function clampMapOffset(desired, viewportSize, mapSize) {
+    if (mapSize <= viewportSize) return (viewportSize - mapSize) / 2;
+    return Math.min(0, Math.max(viewportSize - mapSize, desired));
+  }
+
+  function miniMapCamera(target, viewport, sourceSize, zoom = 1.25) {
+    const viewportWidth = Number(viewport && viewport.width);
+    const viewportHeight = Number(viewport && viewport.height);
+    const sourceWidth = Number(sourceSize && sourceSize.width);
+    const sourceHeight = Number(sourceSize && sourceSize.height);
+    const safeZoom = Math.max(1, Number(zoom) || 1);
+    if (![viewportWidth, viewportHeight, sourceWidth, sourceHeight].every(Number.isFinite) || viewportWidth <= 0 || viewportHeight <= 0 || sourceWidth <= 0 || sourceHeight <= 0) return null;
+
+    const fitScale = Math.max(viewportWidth / sourceWidth, viewportHeight / sourceHeight);
+    const requestedScale = Number(sourceSize && sourceSize.scale);
+    const scale = requestedScale > 0 ? requestedScale : fitScale * safeZoom;
+    const mapWidth = sourceWidth * scale;
+    const mapHeight = sourceHeight * scale;
+    const focus = target && Number.isFinite(Number(target.x)) && Number.isFinite(Number(target.y))
+      ? target
+      : { x: 0.5, y: 0.5 };
+    const desiredLeft = viewportWidth / 2 - focus.x * mapWidth;
+    const desiredTop = viewportHeight / 2 - focus.y * mapHeight;
+    return {
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      scale,
+      mapWidth,
+      mapHeight,
+      left: clampMapOffset(desiredLeft, viewportWidth, mapWidth),
+      top: clampMapOffset(desiredTop, viewportHeight, mapHeight),
+    };
+  }
+
+  function projectMiniMapPoint(point, camera) {
+    if (!point || !camera) return null;
+    const x = Number(point.x);
+    const y = Number(point.y);
+    if (![x, y].every(Number.isFinite)) return null;
+    return {
+      x: camera.left + x * camera.sourceWidth * camera.scale,
+      y: camera.top + y * camera.sourceHeight * camera.scale,
+    };
+  }
+
+  function miniMapEdgeFlags(point, viewport, padding = 0) {
+    if (!point || !viewport) return null;
+    const x = Number(point.x);
+    const y = Number(point.y);
+    const width = Number(viewport.width);
+    const height = Number(viewport.height);
+    const safePadding = Math.max(0, Number(padding) || 0);
+    if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return null;
+    const left = x < safePadding;
+    const right = x > width - safePadding;
+    const top = y < safePadding;
+    const bottom = y > height - safePadding;
+    return { left, right, top, bottom, outside: left || right || top || bottom };
+  }
+
+  function miniMapPrimaryEdge(point, viewport, padding = 0) {
+    const edge = miniMapEdgeFlags(point, viewport, padding);
+    if (!edge || !edge.outside) return '';
+    const x = Number(point.x);
+    const y = Number(point.y);
+    const width = Number(viewport.width);
+    const height = Number(viewport.height);
+    const safePadding = Math.max(0, Number(padding) || 0);
+    const candidates = [
+      ['left', safePadding - x],
+      ['right', x - (width - safePadding)],
+      ['top', safePadding - y],
+      ['bottom', y - (height - safePadding)],
+    ].filter(([, overflow]) => overflow > 0);
+    candidates.sort((left, right) => right[1] - left[1]);
+    return candidates[0] ? candidates[0][0] : '';
+  }
+
+  function clampMiniMapPoint(point, viewport, padding = 14) {
+    if (!point || !viewport) return null;
+    const width = Number(viewport.width);
+    const height = Number(viewport.height);
+    const safePadding = Math.max(0, Number(padding) || 0);
+    if (![width, height, Number(point.x), Number(point.y)].every(Number.isFinite) || width <= 0 || height <= 0) return null;
+    return {
+      x: Math.max(safePadding, Math.min(width - safePadding, Number(point.x))),
+      y: Math.max(safePadding, Math.min(height - safePadding, Number(point.y))),
+    };
+  }
+
+  function projectLiveVowel(live, anchor, margin = VOWEL_MAP_MARGIN) {
+    const livePoint = normalizedLivePoint(live, margin);
+    const targetPoint = normalizedAnchorPoint(anchor);
+    if (!livePoint || !targetPoint) return null;
+    return {
+      x: Math.max(-1, Math.min(1, livePoint.x - targetPoint.x)),
+      y: Math.max(-1, Math.min(1, livePoint.y - targetPoint.y)),
+    };
   }
 
   function normalizeStat(value) {
@@ -386,9 +526,19 @@
     SKIP_MISSES,
     SKIP_TIME_MS,
     RECENT_LIMIT,
+    VOWEL_MAP_MARGIN,
     blankState,
     normalizeState,
     normalizeStat,
+    normalizedAnchorPoint,
+    normalizedLivePoint,
+    liveDisplayScale,
+    miniMapCamera,
+    projectMiniMapPoint,
+    miniMapEdgeFlags,
+    miniMapPrimaryEdge,
+    clampMiniMapPoint,
+    projectLiveVowel,
     accuracy,
     meanAccuracy,
     masteryBand,
