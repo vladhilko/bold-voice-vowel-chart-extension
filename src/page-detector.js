@@ -222,6 +222,7 @@
       if (!anchor) return;
       lastHitPayload = {
         focused: true,
+        focusedAt: lastHitAt,
         symbol: anchor.label,
         arpa: anchor.arpa,
         ipa: anchor.ipa,
@@ -240,7 +241,7 @@
       lastLivePayload = {
         focused: false,
         anchors,
-        live: { x, y, canvasWidth: canvas.width, canvasHeight: canvas.height },
+        live: { x, y, canvasWidth: canvas.width, canvasHeight: canvas.height, at: performance.now() },
         nearest: nearest && {
           symbol: nearest.label,
           arpa: nearest.arpa,
@@ -249,7 +250,7 @@
           distance: nearest.distance,
         },
       };
-      if (lastHitPayload && performance.now() - lastHitAt < 160) {
+      if (lastHitPayload && performance.now() - lastHitAt < 100) {
         publish({
           ...lastHitPayload,
           anchors,
@@ -266,12 +267,12 @@
     if (clearTimer) window.clearTimeout(clearTimer);
     clearTimer = window.setTimeout(() => {
       const now = performance.now();
-      if (now - lastHitAt > 120 && now - lastLiveAt > 120) {
+      if (now - lastHitAt >= 100 && now - lastLiveAt >= 100) {
         lastLivePayload = null;
         lastHitPayload = null;
         publish({ focused: false, anchors: anchors || [] });
       }
-    }, 140);
+    }, 100);
   }
 
   loadAnchors();

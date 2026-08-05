@@ -1,0 +1,8 @@
+{
+  "name": "bold-voice-vowel-chart-extension",
+  "private": true,
+  "scripts": {
+    "build:data": "node scripts/build-training-data.mjs",
+    "test": "node --test"
+  }
+}

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "BoldVoice Vowel Focus Reader",
-  "version": "0.8.0",
-  "description": "Shows the highlighted vowel and adds sound, word, and word-family drill games to the BoldVoice vowel map.",
+  "version": "1.10.0",
+  "description": "Adds exhaustive guided vowel training, progress analysis, and pronunciation games to the BoldVoice vowel map.",
   "permissions": [
     "storage"
   ],
@@ -28,10 +28,14 @@
         "https://vowel-chart-experiment.onrender.com/*"
       ],
       "js": [
-        "src/content.js"
+        "src/training-data.js",
+        "src/training-core.js",
+        "src/content.js",
+        "src/guided-training.js"
       ],
       "css": [
-        "src/styles.css"
+        "src/styles.css",
+        "src/guided-styles.css"
       ],
       "run_at": "document_start"
     }
