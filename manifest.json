@@ -1,20 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "BoldVoice Vowel Focus Reader",
-  "version": "1.11.0",
-  "description": "Adds exhaustive guided vowel training, progress analysis, and pronunciation games to the BoldVoice vowel map.",
+  "name": "BoldVoice Vowel Progress Coach",
+  "version": "1.11.3",
+  "description": "Unofficial guided vowel training and progress tools for the BoldVoice vowel map.",
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
   "permissions": [
     "storage"
-  ],
-  "host_permissions": [
-    "https://boldvoice.com/*",
-    "https://vowel-chart-experiment.onrender.com/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://boldvoice.com/*",
-        "https://vowel-chart-experiment.onrender.com/*"
+        "https://boldvoice.com/games/vowel-map*"
       ],
       "js": [
         "src/page-detector.js"
@@ -24,8 +25,7 @@
     },
     {
       "matches": [
-        "https://boldvoice.com/*",
-        "https://vowel-chart-experiment.onrender.com/*"
+        "https://boldvoice.com/games/vowel-map*"
       ],
       "js": [
         "src/training-data.js",

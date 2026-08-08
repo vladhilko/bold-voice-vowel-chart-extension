@@ -265,15 +265,22 @@
   }
 
   function storageArea() {
-    return globalThis.chrome && chrome.storage && chrome.storage.local
-      ? chrome.storage.local
-      : null;
+    try {
+      return globalThis.chrome && chrome.storage && chrome.storage.local
+        ? chrome.storage.local
+        : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   function readStoredState() {
     const area = storageArea();
     if (area) {
-      return area.get(STORAGE_KEY).then((result) => result[STORAGE_KEY] || null);
+      return Promise.resolve()
+        .then(() => area.get(STORAGE_KEY))
+        .then((result) => result[STORAGE_KEY] || null)
+        .catch(() => null);
     }
     try {
       return Promise.resolve(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
@@ -284,7 +291,11 @@
 
   function writeStoredState(state) {
     const area = storageArea();
-    if (area) return area.set({ [STORAGE_KEY]: state });
+    if (area) {
+      return Promise.resolve()
+        .then(() => area.set({ [STORAGE_KEY]: state }))
+        .catch(() => {});
+    }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (_) { /* storage unavailable */ }

@@ -45,6 +45,7 @@
   let celebrationTimer = 0;
   let correctCueTimer = 0;
   let audioContext = null;
+  let audioResumePromise = null;
   let liveVowelTrail = [];
   let liveVowelItemId = '';
   let liveVowelSampleAt = 0;
@@ -218,14 +219,22 @@
   }
 
   function storageArea() {
-    return globalThis.chrome && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+    try {
+      return globalThis.chrome && chrome.storage && chrome.storage.local ? chrome.storage.local : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   async function readStates() {
     const area = storageArea();
     if (area) {
-      const result = await area.get([STORAGE_KEY, LEGACY_KEY]);
-      return [result[STORAGE_KEY], result[LEGACY_KEY]];
+      try {
+        const result = await Promise.resolve().then(() => area.get([STORAGE_KEY, LEGACY_KEY]));
+        return [result[STORAGE_KEY], result[LEGACY_KEY]];
+      } catch (_) {
+        return [null, null];
+      }
     }
     try {
       return [JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'), JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null')];
@@ -236,7 +245,11 @@
 
   function writeState() {
     const area = storageArea();
-    if (area) return area.set({ [STORAGE_KEY]: state });
+    if (area) {
+      return Promise.resolve()
+        .then(() => area.set({ [STORAGE_KEY]: state }))
+        .catch(() => {});
+    }
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) { /* unavailable */ }
     return Promise.resolve();
   }
@@ -457,44 +470,49 @@
   function unlockAudio() {
     try {
       audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioContext.state === 'suspended') audioContext.resume();
+      if (audioContext.state !== 'suspended' || audioResumePromise) return;
+      audioResumePromise = Promise.resolve(audioContext.resume())
+        .catch(() => {})
+        .finally(() => { audioResumePromise = null; });
     } catch (_) { /* audio is optional */ }
   }
 
   function playCelebrationSound() {
-    unlockAudio();
-    if (!audioContext) return;
-    const now = audioContext.currentTime;
-    [523.25, 659.25, 783.99].forEach((frequency, index) => {
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      const start = now + index * 0.085;
-      oscillator.type = 'sine';
-      oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.12, start + 0.018);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
-      oscillator.connect(gain).connect(audioContext.destination);
-      oscillator.start(start);
-      oscillator.stop(start + 0.24);
-    });
+    if (!audioContext || audioContext.state !== 'running') return;
+    try {
+      const now = audioContext.currentTime;
+      [523.25, 659.25, 783.99].forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + index * 0.085;
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.24);
+      });
+    } catch (_) { /* audio is optional */ }
   }
 
   function playCorrectSound() {
-    unlockAudio();
-    if (!audioContext) return;
-    const now = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(659.25, now);
-    oscillator.frequency.exponentialRampToValueAtTime(783.99, now + 0.09);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-    oscillator.connect(gain).connect(audioContext.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.15);
+    if (!audioContext || audioContext.state !== 'running') return;
+    try {
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(659.25, now);
+      oscillator.frequency.exponentialRampToValueAtTime(783.99, now + 0.09);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.15);
+    } catch (_) { /* audio is optional */ }
   }
 
   function acknowledgeCorrectAttempt() {
@@ -1651,7 +1669,7 @@
     createSummary(row);
     createShell(row);
     createModal();
-    document.addEventListener('pointerdown', unlockAudio, { once: true });
+    document.addEventListener('pointerdown', unlockAudio, { passive: true });
     renderAll();
     scheduleSave(0);
     window.setInterval(tick, 1000);
