@@ -3,6 +3,9 @@
   window.__bvVowelFocusReaderInstalled = true;
 
   const EVENT_NAME = 'bv-vowel-focus-reader:update';
+  const AUDIO_EVENT_NAME = 'bv-vowel-progress-coach:audio';
+  const AUDIO_READY_EVENT_NAME = 'bv-vowel-progress-coach:audio-ready';
+  const AUDIO_STATUS_EVENT_NAME = 'bv-vowel-progress-coach:audio-status';
   const CANVAS_ID = 'chart';
   const ANCHOR_RADIUS = 36;
   const HIT_RING_RADIUS = ANCHOR_RADIUS + 1;
@@ -32,6 +35,93 @@
   let lastLiveAt = 0;
   let clearTimer = 0;
   let canvasTexts = [];
+  let audioContext = null;
+  let audioResumePromise = null;
+
+  function publishAudioReady() {
+    window.dispatchEvent(new CustomEvent(AUDIO_READY_EVENT_NAME));
+  }
+
+  function unlockAudio(event) {
+    if (!event || event.isTrusted !== true || !['pointerdown', 'click', 'keydown'].includes(event.type)) return;
+    if (navigator.userActivation && navigator.userActivation.isActive !== true) return;
+
+    try {
+      if (!audioContext) {
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextConstructor) return;
+        audioContext = new AudioContextConstructor();
+      }
+
+      if (audioContext.state === 'running') {
+        publishAudioReady();
+        return;
+      }
+      if (audioContext.state !== 'suspended' || audioResumePromise) return;
+
+      audioResumePromise = Promise.resolve(audioContext.resume())
+        .then(() => {
+          if (audioContext && audioContext.state === 'running') publishAudioReady();
+        })
+        .catch(() => {})
+        .finally(() => { audioResumePromise = null; });
+    } catch (_) {
+      audioContext = null;
+      audioResumePromise = null;
+    }
+  }
+
+  function playCelebrationSound() {
+    if (!audioContext || audioContext.state !== 'running') return;
+    try {
+      const now = audioContext.currentTime;
+      [523.25, 659.25, 783.99].forEach((frequency, index) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const start = now + index * 0.085;
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.24);
+      });
+    } catch (_) { /* audio is optional */ }
+  }
+
+  function playCorrectSound() {
+    if (!audioContext || audioContext.state !== 'running') return;
+    try {
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(659.25, now);
+      oscillator.frequency.exponentialRampToValueAtTime(783.99, now + 0.09);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.15);
+    } catch (_) { /* audio is optional */ }
+  }
+
+  function handleAudioCue(event) {
+    if (!audioContext || audioContext.state !== 'running') return;
+    if (event.detail === 'correct') playCorrectSound();
+    if (event.detail === 'celebration') playCelebrationSound();
+  }
+
+  document.addEventListener('pointerdown', unlockAudio, { capture: true, passive: true });
+  document.addEventListener('click', unlockAudio, { capture: true, passive: true });
+  document.addEventListener('keydown', unlockAudio, { capture: true, passive: true });
+  window.addEventListener(AUDIO_EVENT_NAME, handleAudioCue);
+  window.addEventListener(AUDIO_STATUS_EVENT_NAME, () => {
+    if (audioContext && audioContext.state === 'running') publishAudioReady();
+  });
 
   function publish(payload) {
     const normalized = payload || { focused: false };

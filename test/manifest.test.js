@@ -24,4 +24,7 @@ test('manifest is a publishable MV3 shape for the supported site', () => {
   for (const script of manifest.content_scripts) {
     assert.deepEqual(script.matches, ['https://boldvoice.com/games/vowel-map*']);
   }
+
+  const detectorScript = manifest.content_scripts.find((script) => script.js.includes('src/page-detector.js'));
+  assert.equal(detectorScript.world, 'MAIN');
 });

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BoldVoice Vowel Progress Coach",
-  "version": "1.11.3",
+  "version": "1.11.5",
   "description": "Unofficial guided vowel training and progress tools for the BoldVoice vowel map.",
   "icons": {
     "16": "assets/icon16.png",

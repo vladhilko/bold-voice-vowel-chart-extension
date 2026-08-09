@@ -2,6 +2,9 @@
   'use strict';
 
   const EVENT_NAME = 'bv-vowel-focus-reader:update';
+  const AUDIO_EVENT_NAME = 'bv-vowel-progress-coach:audio';
+  const AUDIO_READY_EVENT_NAME = 'bv-vowel-progress-coach:audio-ready';
+  const AUDIO_STATUS_EVENT_NAME = 'bv-vowel-progress-coach:audio-status';
   const STORAGE_KEY = 'bv-vowel-training-state-v2';
   const LEGACY_KEY = 'bv-vowel-vanguard-state-v1';
   const data = window.BV_TRAINING_DATA;
@@ -44,8 +47,6 @@
   let modalStatus = 'all';
   let celebrationTimer = 0;
   let correctCueTimer = 0;
-  let audioContext = null;
-  let audioResumePromise = null;
   let liveVowelTrail = [];
   let liveVowelItemId = '';
   let liveVowelSampleAt = 0;
@@ -467,52 +468,18 @@
     scheduleSave();
   }
 
-  function unlockAudio() {
-    try {
-      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioContext.state !== 'suspended' || audioResumePromise) return;
-      audioResumePromise = Promise.resolve(audioContext.resume())
-        .catch(() => {})
-        .finally(() => { audioResumePromise = null; });
-    } catch (_) { /* audio is optional */ }
+  function markAudioReady() {
+    if (!shell) return;
+    const feedback = shell.querySelector('.bv-guide-feedback');
+    if (feedback && feedback.textContent === 'Click once to enable sounds') setFeedback('Sounds ready');
   }
 
   function playCelebrationSound() {
-    if (!audioContext || audioContext.state !== 'running') return;
-    try {
-      const now = audioContext.currentTime;
-      [523.25, 659.25, 783.99].forEach((frequency, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        const start = now + index * 0.085;
-        oscillator.type = 'sine';
-        oscillator.frequency.value = frequency;
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(0.12, start + 0.018);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
-        oscillator.connect(gain).connect(audioContext.destination);
-        oscillator.start(start);
-        oscillator.stop(start + 0.24);
-      });
-    } catch (_) { /* audio is optional */ }
+    window.dispatchEvent(new CustomEvent(AUDIO_EVENT_NAME, { detail: 'celebration' }));
   }
 
   function playCorrectSound() {
-    if (!audioContext || audioContext.state !== 'running') return;
-    try {
-      const now = audioContext.currentTime;
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(659.25, now);
-      oscillator.frequency.exponentialRampToValueAtTime(783.99, now + 0.09);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.045, now + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
-      oscillator.connect(gain).connect(audioContext.destination);
-      oscillator.start(now);
-      oscillator.stop(now + 0.15);
-    } catch (_) { /* audio is optional */ }
+    window.dispatchEvent(new CustomEvent(AUDIO_EVENT_NAME, { detail: 'correct' }));
   }
 
   function acknowledgeCorrectAttempt() {
@@ -634,7 +601,7 @@
       '    <div><span>Sound score</span><strong data-guide="sound-score">--</strong></div>',
       '    <div><span>Coverage</span><strong data-guide="coverage">0%</strong></div>',
       '  </div>',
-      '  <div class="bv-guide-feedback" aria-live="polite">Waiting for voice</div>',
+      '  <div class="bv-guide-feedback" aria-live="polite">Click once to enable sounds</div>',
       '  <button type="button" class="bv-guide-skip" hidden>Skip for now</button>',
       '</div>',
       '<div class="bv-freeplay-pane" hidden></div>',
@@ -650,7 +617,6 @@
     shell.querySelector('.bv-guide-skip').addEventListener('click', skipCurrentItem);
     shell.querySelector('.bv-targeted-banner button').addEventListener('click', stopTargetedTraining);
     row.appendChild(shell);
-    shell.addEventListener('pointerdown', unlockAudio, { once: true });
 
     const oldGame = document.getElementById('bv-ih-flight-game');
     if (oldGame) shell.querySelector('.bv-freeplay-pane').appendChild(oldGame);
@@ -1669,16 +1635,16 @@
     createSummary(row);
     createShell(row);
     createModal();
-    document.addEventListener('pointerdown', unlockAudio, { passive: true });
+    window.dispatchEvent(new CustomEvent(AUDIO_STATUS_EVENT_NAME));
     renderAll();
     scheduleSave(0);
     window.setInterval(tick, 1000);
   }
 
   window.addEventListener(EVENT_NAME, (event) => handleVowelEvent(parseDetail(event.detail)));
+  window.addEventListener(AUDIO_READY_EVENT_NAME, markAudioReady);
   window.addEventListener('pagehide', () => writeState().catch(() => {}));
   window.addEventListener('keydown', (event) => {
-    unlockAudio();
     if (event.key === 'Escape' && modal && !modal.hidden) closeModal();
   });
 

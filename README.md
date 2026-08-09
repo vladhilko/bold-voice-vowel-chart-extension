@@ -47,25 +47,25 @@ The prompt card includes a small live vowel-map view, a target highlight, and a 
 
 ## Screenshots And Video
 
-Add product media here as it becomes available.
+These screenshots show the current training experience and store presentation.
 
 ### Guided Training
 
-_Screenshot placeholder: guided training with the live mini vowel map and repetition progress._
-
-<!-- Add image: docs/media/guided-training.png -->
+![Guided vowel training with the live mini vowel map and repetition progress](docs/media/guided_vowel_training_1280x800.png)
 
 ### Progress History
 
-_Screenshot placeholder: progress history with score, attempts, accuracy, and coverage._
+![Progress history with score growth, attempts, accuracy, and coverage](docs/media/track_score_growth_1280x800.png)
 
-<!-- Add image: docs/media/progress-history.png -->
+### Weak Pattern Training
 
-### Word Families Or Mastery
+![Weak pattern training with targeted practice](docs/media/find_weak_patterns_1280x800.png)
 
-_Screenshot placeholder: word-family or mastery-phrase training._
+### Store Preview
 
-<!-- Add image: docs/media/word-families.png -->
+![Guided vowel training store preview](docs/media/guided_vowel_training_marquee_1400x560.png)
+
+The duplicate 440x280 guided-training image is intentionally not included.
 
 ### Demo Video
 

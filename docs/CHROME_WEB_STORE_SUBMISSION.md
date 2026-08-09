@@ -5,7 +5,7 @@ This document contains the current listing copy, permission explanations, privac
 ## Manifest Summary
 
 - Name: `BoldVoice Vowel Progress Coach`
-- Version: `1.11.3`
+- Version: `1.11.5`
 - Category: `Education`
 - Language: `English`
 - Visibility recommendation: `Unlisted` for the first external test, then `Public`
