@@ -4,6 +4,25 @@ An unofficial Chrome extension for practicing pronunciation on the [BoldVoice Vo
 
 The extension turns the live vowel map into a guided training tool. It shows the current target, gives live visual feedback, and saves training progress locally in Chrome.
 
+## Screenshots And Video
+
+### Guided Training
+
+![Weak pattern training with targeted practice](docs/media/find_weak_patterns_1280x800.png)
+
+### Progress History
+
+![Progress history with score growth, attempts, accuracy, and coverage](docs/media/track_score_growth_1280x800.png)
+
+### Weak Pattern Training
+
+![Guided vowel training with the live mini vowel map and repetition progress](docs/media/guided_vowel_training_1280x800.png)
+
+### Demo Video
+
+https://github.com/user-attachments/assets/784d0ede-161a-449f-a5bb-c3ddc26972f3
+
+
 ## How It Works
 
 1. Open the BoldVoice Vowel Map.
@@ -44,34 +63,6 @@ This makes it possible to return later and continue from the same place, or open
 - **Free Play** provides an extra pronunciation game outside the curriculum.
 
 The prompt card includes a small live vowel-map view, a target highlight, and a ready/reloading state so it is clear when the next attempt can count.
-
-## Screenshots And Video
-
-These screenshots show the current training experience and store presentation.
-
-### Guided Training
-
-![Guided vowel training with the live mini vowel map and repetition progress](docs/media/guided_vowel_training_1280x800.png)
-
-### Progress History
-
-![Progress history with score growth, attempts, accuracy, and coverage](docs/media/track_score_growth_1280x800.png)
-
-### Weak Pattern Training
-
-![Weak pattern training with targeted practice](docs/media/find_weak_patterns_1280x800.png)
-
-### Store Preview
-
-![Guided vowel training store preview](docs/media/guided_vowel_training_marquee_1400x560.png)
-
-The duplicate 440x280 guided-training image is intentionally not included.
-
-### Demo Video
-
-_Video placeholder: add a short link or embed showing a complete training session._
-
-<!-- Add video link here -->
 
 ## Project Notes
 
