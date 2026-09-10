@@ -2,6 +2,8 @@
 
 An unofficial Chrome extension for practicing pronunciation on the [BoldVoice Vowel Map](https://boldvoice.com/games/vowel-map).
 
+[**Install from the Chrome Web Store →**](https://chromewebstore.google.com/detail/boldvoice-vowel-progress/aoicjncioaghokkhmgkdfinaaeffnahg)
+
 The extension turns the live vowel map into a guided training tool. It shows the current target, gives live visual feedback, and saves training progress locally in Chrome.
 
 ## Screenshots And Video
@@ -22,6 +24,13 @@ The extension turns the live vowel map into a guided training tool. It shows the
 
 https://github.com/user-attachments/assets/784d0ede-161a-449f-a5bb-c3ddc26972f3
 
+## Install
+
+The easiest way to install the extension is from the Chrome Web Store:
+
+[**BoldVoice Vowel Progress Coach on the Chrome Web Store →**](https://chromewebstore.google.com/detail/boldvoice-vowel-progress/aoicjncioaghokkhmgkdfinaaeffnahg)
+
+After installing it, open the [BoldVoice Vowel Map](https://boldvoice.com/games/vowel-map) to start training.
 
 ## How It Works
 
@@ -49,29 +58,33 @@ Each item needs ten correct repetitions. Mistakes remain in the statistics, so a
 
 The extension keeps local progress for:
 
-- Correct and total attempts for each pattern.
-- Accuracy and curriculum coverage.
-- Current sound, stage, word family, pattern, and repetition.
-- Skips, daily activity, and progress history.
+* Correct and total attempts for each pattern.
+* Accuracy and curriculum coverage.
+* Current sound, stage, word family, pattern, and repetition.
+* Skips, daily activity, and progress history.
 
 This makes it possible to return later and continue from the same place, or open a specific weak pattern for targeted practice.
 
 ## Modes
 
-- **Guided Training** follows the curriculum in order.
-- **Targeted Training** opens a selected sound, transition, word, or phrase.
-- **Free Play** provides an extra pronunciation game outside the curriculum.
+* **Guided Training** follows the curriculum in order.
+* **Targeted Training** opens a selected sound, transition, word, or phrase.
+* **Free Play** provides an extra pronunciation game outside the curriculum.
 
 The prompt card includes a small live vowel-map view, a target highlight, and a ready/reloading state so it is clear when the next attempt can count.
 
 ## Project Notes
 
-- Supported page: `https://boldvoice.com/games/vowel-map*`
-- The extension uses Manifest V3.
-- Training data is bundled with the extension.
-- Progress is stored with Chrome local extension storage.
+* Supported page: `https://boldvoice.com/games/vowel-map*`
+* The extension uses Manifest V3.
+* Training data is bundled with the extension.
+* Progress is stored with Chrome local extension storage.
 
-Publishing and privacy details are kept separately:
+## Privacy And Publishing
 
-- [Chrome Web Store submission notes](docs/CHROME_WEB_STORE_SUBMISSION.md)
-- [Privacy policy](docs/PRIVACY_POLICY.md)
+The extension does not record or upload microphone audio. Training progress is stored locally in Chrome.
+
+Additional details:
+
+* [Chrome Web Store submission notes](docs/CHROME_WEB_STORE_SUBMISSION.md)
+* [Privacy policy](docs/PRIVACY_POLICY.md)
